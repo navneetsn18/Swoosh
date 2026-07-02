@@ -4,6 +4,12 @@ on:
   push:
     branches: [ main ]
     tags: [ 'v*' ]
+    # Don't waste a build on docs-only changes (README, license, etc.).
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:

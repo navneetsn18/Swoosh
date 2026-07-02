@@ -46,6 +46,42 @@ carefully — because I wrote it. You can too. It's all right here. That's the w
 
 ---
 
+## 😤 Install still not working?
+
+Play Protect being extra clingy? Here are the escape hatches, easiest first.
+
+**Plan A — Install Anyway (on the phone)**
+When you see *"Blocked by Play Protect"* → tap **More details** → **Install anyway**. Usually enough.
+
+**Plan B — Turn off scanning for a minute**
+Play Store → tap your **profile pic** → **Play Protect** → ⚙️ gear → toggle
+**Scan apps with Play Protect** OFF → install → turn it back ON. (If it nags to remove the
+app afterward, choose **Keep**.)
+
+**Plan C — Install over USB (adb), skips the whole dialog**
+
+First enable USB debugging on the phone:
+1. **Settings → About phone → tap "Build number" 7 times** (yes, seven — you're a developer now 🎉).
+2. **Settings → System → Developer options → enable USB debugging.**
+3. Plug the phone into your computer, accept the *"Allow USB debugging?"* popup.
+
+Then from your computer:
+```bash
+adb install -r -t Swoosh.apk
+```
+Still blocked with `INSTALL_FAILED_VERIFICATION_FAILURE`? Disable the verifier once, reinstall,
+then turn it back on:
+```bash
+adb shell settings put global verifier_verify_adb_installs 0
+adb install -r -t Swoosh.apk
+adb shell settings put global verifier_verify_adb_installs 1   # tidy up after
+```
+
+> None of this is a virus scare — an SMS-forwarding app just *looks* like spyware to a robot.
+> You read the code (or trust the person who did). Carry on.
+
+---
+
 ## 🧑‍🍳 Want to build it yourself? (You, the nerd)
 
 ```bash
