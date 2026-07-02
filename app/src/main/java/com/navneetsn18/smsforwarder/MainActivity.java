@@ -20,7 +20,7 @@ import com.airbnb.lottie.LottieProperty;
 import com.airbnb.lottie.SimpleColorFilter;
 import com.airbnb.lottie.model.KeyPath;
 import com.airbnb.lottie.value.LottieValueCallback;
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         });
         recycler.setAdapter(adapter);
 
-        ExtendedFloatingActionButton fab = findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(v -> startActivity(new Intent(this, EditRuleActivity.class)));
 
         findViewById(R.id.footer).setOnClickListener(v ->
