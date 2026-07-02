@@ -1,0 +1,59 @@
+name: Build & Release APK
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build debug APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk Swoosh.apk
+
+      # Always keep the built APK as a downloadable artifact on the workflow run.
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Swoosh-apk
+          path: Swoosh.apk
+
+      # Tag pushes (v1.2.3) -> a proper versioned GitHub Release.
+      - name: Release (tagged)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Swoosh.apk
+
+      # Every push to main -> refresh a rolling "latest" release so users always
+      # have one obvious download link.
+      - name: Release (latest)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          body: "Auto-built from the newest commit on main. Download Swoosh.apk below."
+          files: Swoosh.apk

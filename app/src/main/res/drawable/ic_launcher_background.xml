@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Solid blue field -->
+    <path android:fillColor="#2563EB" android:pathData="M0,0 h108 v108 h-108 z" />
+
+    <!-- Scattered darker pixels for subtle pixel-art texture -->
+    <path android:fillColor="#1D4ED8" android:pathData="M9,9 h9 v9 h-9 z M90,18 h9 v9 h-9 z M18,81 h9 v9 h-9 z M81,90 h9 v9 h-9 z M0,54 h9 v9 h-9 z M99,63 h9 v9 h-9 z" />
+</vector>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Envelope body (white pixel block) + swoosh motion lines -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M36,36 h54 v45 h-54 z
+                          M9,45 h18 v9 h-18 z
+                          M0,54 h24 v9 h-24 z
+                          M12,63 h15 v9 h-15 z" />
+
+    <!-- Flap fold: stair-stepped diagonal V (blue pixels cut into the white) -->
+    <path android:fillColor="#1D4ED8"
+        android:pathData="M36,36 h9 v9 h-9 z
+                          M45,45 h9 v9 h-9 z
+                          M54,54 h9 v9 h-9 z
+                          M90,36 h-9 v9 h9 z
+                          M81,45 h-9 v9 h9 z
+                          M72,54 h-9 v9 h9 z" />
+</vector>
