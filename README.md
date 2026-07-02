@@ -141,3 +141,15 @@ Do whatever you want with it — it's your family's safety, not mine.
 Font: [Poppins](https://fonts.google.com/specimen/Poppins) (OFL). Animations: home-grown Lottie.
 
 Built with love, paranoia, and a healthy distrust of "free" apps. 💙
+
+---
+
+<div align="center">
+
+Made with ❤️ by [@navneetsn18](https://github.com/navneetsn18)
+
+<a href="https://buymeacoffee.com/navneetsn18">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50" />
+</a>
+
+</div>

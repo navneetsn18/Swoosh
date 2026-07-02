@@ -2,6 +2,7 @@ package com.navneetsn18.smsforwarder;
 
 import android.Manifest;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -68,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
 
         ExtendedFloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(v -> startActivity(new Intent(this, EditRuleActivity.class)));
+
+        findViewById(R.id.footer).setOnClickListener(v ->
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/navneetsn18"))));
 
         requestPermissions.launch(new String[]{
             Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS
