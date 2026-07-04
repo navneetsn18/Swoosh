@@ -134,23 +134,36 @@ Set up rules on your dad's phone **from your phone**. One-time setup: open Swoos
 phone, tap the **"N rules · N active" pill** at the top, set a PIN. That's the last time
 you touch his phone.
 
-From then on, text his number:
+From then on, text his number. Full CRUD over SMS — Swoosh intercepts these (never
+forwards them) and **texts you back** the result:
 
 ```
-swoosh pin:1234;name:dad otp;to:9988776655,8877665544;from:HDFC;contains:OTP;days:7;strip:Dear Customer
+swoosh list pin:1234
+→ Swoosh rules:
+  1. dad otp
+  2. bank alerts (off)
+
+swoosh add pin:1234;name:dad otp;to:9988776655,8877665544;from:HDFC;contains:OTP;days:7;strip:Dear Customer
+→ creates the rule ("add" is optional — "swoosh pin:..." does the same)
+
+swoosh mod:2 pin:1234;to:9911223344;days:30
+→ updates rule #2, only the fields you send change
+
+swoosh del:2 pin:1234
+→ deletes rule #2
 ```
 
-Swoosh intercepts it (it's never forwarded), creates the rule, and **texts you back** a
-confirmation. Send the same `name` again to update that rule instead of duplicating it.
+`mod`/`del` numbers are the positions from the `list` reply — send `list` first.
+For `add`, reusing a `name` updates that rule instead of duplicating it.
 
 | Field | Required? | What it does |
 |-------|-----------|--------------|
-| `pin` | ✅ | Must match the PIN set on the phone. Wrong PIN = silently ignored. |
-| `name` | ✅ | Rule name. Reusing a name updates the existing rule. |
-| `to` | ✅ | Destination number(s), comma-separated. |
+| `pin` | ✅ always | Must match the PIN set on the phone. Wrong PIN = silently ignored. |
+| `name` | ✅ for add | Rule name. Reusing a name updates the existing rule. |
+| `to` | ✅ for add | Destination number(s), comma-separated. |
 | `from` | — | Only forward SMS whose sender contains this. |
 | `contains` | — | Only forward SMS whose text contains this. |
-| `days` | — | Rule expires after this many days. Omit = forever. |
+| `days` | — | Rule expires after this many days. `0` = never. Omit = keep as-is / forever. |
 | `strip` | — | Words to remove before forwarding, comma-separated. |
 
 **Security, honestly:** anyone who knows the PIN can make the phone forward SMS by texting

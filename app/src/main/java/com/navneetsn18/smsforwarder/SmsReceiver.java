@@ -33,10 +33,10 @@ public class SmsReceiver extends BroadcastReceiver {
         }
         String body = bodyBuilder.toString();
 
-        // Remote-config SMS ("swoosh pin:...;name:...;to:...") — handle and never forward.
-        java.util.Map<String, String> configFields = ConfigMessage.parseFields(body);
-        if (configFields != null) {
-            handleConfig(context, sender, configFields);
+        // Remote-config SMS ("swoosh [list|mod:N|del:N] pin:...;...") — handle and never forward.
+        ConfigMessage.Parsed config = ConfigMessage.parse(body);
+        if (config != null) {
+            handleConfig(context, sender, config);
             return;
         }
 
@@ -81,34 +81,76 @@ public class SmsReceiver extends BroadcastReceiver {
         }
     }
 
-    /** Creates/updates a rule from a config SMS. Requires the app PIN: not set or
-     *  wrong = silently ignored, so strangers get no feedback to guess against. */
-    private static void handleConfig(Context context, String sender, java.util.Map<String, String> fields) {
+    /** CRUD on rules from a config SMS: list, add (default), mod:N, del:N.
+     *  Requires the app PIN: not set or wrong = silently ignored, so strangers
+     *  get no feedback to guess against. */
+    private static void handleConfig(Context context, String sender, ConfigMessage.Parsed config) {
         String pin = RuleStore.getPin(context);
-        if (pin.isEmpty() || !pin.equals(fields.get("pin"))) {
+        if (pin.isEmpty() || !pin.equals(config.fields.get("pin"))) {
             Log.w(TAG, "config SMS from " + sender + " ignored: PIN unset or mismatch");
             return;
         }
 
+        List<Rule> rules = RuleStore.load(context);
+        long now = System.currentTimeMillis();
         String reply;
         try {
-            Rule rule = ConfigMessage.toRule(fields, System.currentTimeMillis());
-            // Same name = update that rule instead of adding a duplicate.
-            for (Rule r : RuleStore.load(context)) {
-                if (r.name.equalsIgnoreCase(rule.name)) { rule.id = r.id; break; }
+            switch (config.verb) {
+                case "list": {
+                    StringBuilder sb = new StringBuilder("Swoosh rules:");
+                    for (int i = 0; i < rules.size(); i++) {
+                        Rule r = rules.get(i);
+                        sb.append('\n').append(i + 1).append(". ")
+                          .append(r.name.isEmpty() ? "(unnamed)" : r.name);
+                        if (!r.isActive(now)) sb.append(" (off)");
+                    }
+                    reply = rules.isEmpty() ? "Swoosh: no rules" : sb.toString();
+                    break;
+                }
+                case "del": {
+                    Rule r = ruleAt(rules, config.index);
+                    RuleStore.delete(context, r.id);
+                    reply = "Swoosh: deleted " + config.index + ". '" + r.name + "'";
+                    break;
+                }
+                case "mod": {
+                    Rule r = ruleAt(rules, config.index);
+                    ConfigMessage.merge(r, config.fields, now);
+                    RuleStore.upsert(context, r);
+                    reply = "Swoosh: updated " + config.index + ". '" + r.name + "'";
+                    break;
+                }
+                default: { // add
+                    Rule rule = new Rule();
+                    ConfigMessage.merge(rule, config.fields, now);
+                    if (rule.name.isEmpty()) throw new IllegalArgumentException("missing name");
+                    if (rule.destinations.isEmpty()) throw new IllegalArgumentException("missing to numbers");
+                    // Same name = update that rule instead of adding a duplicate.
+                    for (Rule r : rules) {
+                        if (r.name.equalsIgnoreCase(rule.name)) { rule.id = r.id; break; }
+                    }
+                    RuleStore.upsert(context, rule);
+                    reply = "Swoosh: rule '" + rule.name + "' saved, forwarding to "
+                        + rule.destinations.size() + " number(s)";
+                }
             }
-            RuleStore.upsert(context, rule);
-            reply = "Swoosh: rule '" + rule.name + "' saved, forwarding to "
-                + rule.destinations.size() + " number(s)";
         } catch (IllegalArgumentException e) {
             reply = "Swoosh: " + e.getMessage();
         }
 
         try {
-            context.getSystemService(SmsManager.class).sendTextMessage(sender, null, reply, null, null);
+            SmsManager sm = context.getSystemService(SmsManager.class);
+            // List replies can exceed one SMS — send multipart.
+            sm.sendMultipartTextMessage(sender, null, sm.divideMessage(reply), null, null);
         } catch (Exception e) {
             Log.e(TAG, "config reply failed", e);
         }
         Log.i(TAG, "config SMS from " + sender + ": " + reply);
+    }
+
+    private static Rule ruleAt(List<Rule> rules, int index) {
+        if (index < 1 || index > rules.size())
+            throw new IllegalArgumentException("no rule " + index + ", send: swoosh list pin:<pin>");
+        return rules.get(index - 1);
     }
 }

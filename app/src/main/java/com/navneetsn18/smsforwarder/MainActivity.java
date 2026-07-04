@@ -104,7 +104,11 @@ public class MainActivity extends AppCompatActivity {
 
         new AlertDialog.Builder(this)
             .setTitle("Remote config PIN")
-            .setMessage("SMS like \"swoosh pin:1234;name:test;to:9988776655\" creates a rule when the PIN matches.")
+            .setMessage("Manage rules by SMS when the PIN matches:\n"
+                + "swoosh pin:1234;name:test;to:9988776655\n"
+                + "swoosh list pin:1234\n"
+                + "swoosh mod:2 pin:1234;to:9911223344\n"
+                + "swoosh del:2 pin:1234")
             .setView(wrap)
             .setPositiveButton("Save", (d, w) -> {
                 RuleStore.setPin(this, input.getText().toString());
