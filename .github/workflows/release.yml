@@ -53,8 +53,28 @@ jobs:
         with:
           files: Swoosh.apk
 
-      # Every push to main -> refresh a rolling "latest" release so users always
-      # have one obvious download link.
+      # Every push to main -> an immutable build-N tag + release, so any older
+      # build stays downloadable (workflow artifacts expire, these don't).
+      - name: Release (versioned build)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: Build ${{ github.run_number }}
+          body: "${{ github.event.head_commit.message }}"
+          make_latest: false
+          files: Swoosh.apk
+
+      # ...and refresh the rolling "latest" release so users always have one
+      # obvious download link. Move the tag first, otherwise the auto-generated
+      # "Source code" zip/tar.gz stay frozen at the commit that created the tag.
+      - name: Move latest tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git tag -f latest
+          git push -f origin latest
+
       - name: Release (latest)
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
