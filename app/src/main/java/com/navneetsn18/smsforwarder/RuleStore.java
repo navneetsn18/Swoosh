@@ -15,6 +15,17 @@ public class RuleStore {
 
     private static final String PREFS = "config";
     private static final String KEY = "rules";
+    private static final String KEY_PIN = "pin";
+
+    /** PIN gating remote-config SMS. Empty = feature disabled. */
+    public static String getPin(Context context) {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_PIN, "");
+    }
+
+    public static void setPin(Context context, String pin) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY_PIN, pin.trim()).apply();
+    }
 
     public static List<Rule> load(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);

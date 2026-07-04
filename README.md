@@ -28,6 +28,8 @@ carefully — because I wrote it. You can too. It's all right here. That's the w
 - ⏳ **Self-destructing rules.** Set a rule to expire in a day, week, month, year, or never.
 - 🧼 **Word-stripping.** Carriers love to eat messages containing "OTP" and "verification code."
   Swoosh yanks those words out so your forward actually arrives. Sneaky. Effective.
+- 📲 **Config by SMS.** Text the phone a special message and a rule appears — no need to
+  drive across town to poke at your dad's phone. PIN-protected. [Details below.](#-remote-config-by-sms)
 - 🎨 **Actually looks nice.** Blue gradients, a pixel-art icon, a little animation. We fancy now.
 
 ---
@@ -123,6 +125,38 @@ Incoming SMS ──▶ SmsReceiver ──▶ checks every active rule
 | **Active for** | 1 day / 1 week / 1 month / 1 year / forever. Expired rules go quiet automatically. |
 
 Leave the conditions blank to forward **everything**. Live dangerously.
+
+---
+
+## 📲 Remote config by SMS
+
+Set up rules on your dad's phone **from your phone**. One-time setup: open Swoosh on his
+phone, tap the **"N rules · N active" pill** at the top, set a PIN. That's the last time
+you touch his phone.
+
+From then on, text his number:
+
+```
+swoosh pin:1234;name:dad otp;to:9988776655,8877665544;from:HDFC;contains:OTP;days:7;strip:Dear Customer
+```
+
+Swoosh intercepts it (it's never forwarded), creates the rule, and **texts you back** a
+confirmation. Send the same `name` again to update that rule instead of duplicating it.
+
+| Field | Required? | What it does |
+|-------|-----------|--------------|
+| `pin` | ✅ | Must match the PIN set on the phone. Wrong PIN = silently ignored. |
+| `name` | ✅ | Rule name. Reusing a name updates the existing rule. |
+| `to` | ✅ | Destination number(s), comma-separated. |
+| `from` | — | Only forward SMS whose sender contains this. |
+| `contains` | — | Only forward SMS whose text contains this. |
+| `days` | — | Rule expires after this many days. Omit = forever. |
+| `strip` | — | Words to remove before forwarding, comma-separated. |
+
+**Security, honestly:** anyone who knows the PIN can make the phone forward SMS by texting
+it. So: no PIN set = feature completely off (the default), wrong PIN = ignored with no
+reply (nothing to guess against), and config texts themselves are never forwarded. Pick a
+PIN that isn't `1234`, unlike this README.
 
 ---
 

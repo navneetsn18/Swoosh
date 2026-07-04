@@ -4,9 +4,14 @@ import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -67,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
         });
         recycler.setAdapter(adapter);
 
+        statsPill.setOnClickListener(v -> showPinDialog());
+
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(v -> startActivity(new Intent(this, EditRuleActivity.class)));
 
@@ -82,6 +89,31 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refresh();
+    }
+
+    /** Sets the PIN that authorizes rule-creating config SMS. Empty PIN disables the feature. */
+    private void showPinDialog() {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        input.setHint("PIN (empty = disabled)");
+        input.setText(RuleStore.getPin(this));
+        FrameLayout wrap = new FrameLayout(this);
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        wrap.setPadding(pad, 0, pad, 0);
+        wrap.addView(input);
+
+        new AlertDialog.Builder(this)
+            .setTitle("Remote config PIN")
+            .setMessage("SMS like \"swoosh pin:1234;name:test;to:9988776655\" creates a rule when the PIN matches.")
+            .setView(wrap)
+            .setPositiveButton("Save", (d, w) -> {
+                RuleStore.setPin(this, input.getText().toString());
+                Toast.makeText(this,
+                    input.getText().toString().trim().isEmpty() ? "Remote config disabled" : "PIN saved",
+                    Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
     }
 
     private void refresh() {

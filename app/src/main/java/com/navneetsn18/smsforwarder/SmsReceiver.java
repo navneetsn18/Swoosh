@@ -33,6 +33,13 @@ public class SmsReceiver extends BroadcastReceiver {
         }
         String body = bodyBuilder.toString();
 
+        // Remote-config SMS ("swoosh pin:...;name:...;to:...") — handle and never forward.
+        java.util.Map<String, String> configFields = ConfigMessage.parseFields(body);
+        if (configFields != null) {
+            handleConfig(context, sender, configFields);
+            return;
+        }
+
         long now = System.currentTimeMillis();
         List<Rule> rules = RuleStore.load(context);
         SmsManager smsManager = context.getSystemService(SmsManager.class);
@@ -72,5 +79,36 @@ public class SmsReceiver extends BroadcastReceiver {
             if (error != null) msg += "\nERROR: " + error;
             Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
         }
+    }
+
+    /** Creates/updates a rule from a config SMS. Requires the app PIN: not set or
+     *  wrong = silently ignored, so strangers get no feedback to guess against. */
+    private static void handleConfig(Context context, String sender, java.util.Map<String, String> fields) {
+        String pin = RuleStore.getPin(context);
+        if (pin.isEmpty() || !pin.equals(fields.get("pin"))) {
+            Log.w(TAG, "config SMS from " + sender + " ignored: PIN unset or mismatch");
+            return;
+        }
+
+        String reply;
+        try {
+            Rule rule = ConfigMessage.toRule(fields, System.currentTimeMillis());
+            // Same name = update that rule instead of adding a duplicate.
+            for (Rule r : RuleStore.load(context)) {
+                if (r.name.equalsIgnoreCase(rule.name)) { rule.id = r.id; break; }
+            }
+            RuleStore.upsert(context, rule);
+            reply = "Swoosh: rule '" + rule.name + "' saved, forwarding to "
+                + rule.destinations.size() + " number(s)";
+        } catch (IllegalArgumentException e) {
+            reply = "Swoosh: " + e.getMessage();
+        }
+
+        try {
+            context.getSystemService(SmsManager.class).sendTextMessage(sender, null, reply, null, null);
+        } catch (Exception e) {
+            Log.e(TAG, "config reply failed", e);
+        }
+        Log.i(TAG, "config SMS from " + sender + ": " + reply);
     }
 }
